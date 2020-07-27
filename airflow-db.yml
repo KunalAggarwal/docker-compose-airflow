@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+  airflow-db:
+    container_name: airflow-mysql
+    image: mysql:5
+    volumes: 
+      - 'airflow_db:/var/lib/mysql'
+      - './timestamp.cnf:/etc/mysql/mysql.conf.d/timestamp.cnf'
+      - './mysql-init.sql:/data/application/mysql-init.sql'
+    networks:
+      - airflow-db-network
+    command: --default-authentication-plugin=mysql_native_password --init-file /data/application/mysql-init.sql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+
+  airflow-redis:
+    container_name: airflow-redis
+    image: redis
+    restart: always
+    volumes:
+      - 'airflow_redis:/data'
+    networks:
+      - airflow-db-network
+    command: --appendonly yes
+
+volumes:
+  airflow_db:
+    driver: local
+  airflow_redis:
+    driver: local
+
+networks:
+  airflow-db-network:
+    driver: bridge

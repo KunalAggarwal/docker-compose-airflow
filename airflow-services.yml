@@ -1,0 +1,82 @@
+version: '3.1'
+
+services:
+  airflow-webserver:
+    container_name: airflow-webserver
+    image: apache/airflow:latest
+    restart: always
+    networks:
+      - airflow
+      - airflow-db-network
+    volumes:
+      - 'airflow_data:/opt/airflow'
+      - 'airflow_home:/home/airflow'
+      - './dags:/opt/airflow/dags'
+      - './airflow.cfg:/opt/airflow/airflow.cfg'
+    command: webserver -p 8080
+    ports:
+      - '8888:8080'
+
+  airflow-scheduler:
+    container_name: airflow-scheduler
+    image: apache/airflow:latest
+    restart: always
+    networks:
+      - airflow
+      - airflow-db-network
+    volumes:
+      - 'airflow_data:/opt/airflow'
+      - 'airflow_home:/home/airflow'
+      - './dags:/opt/airflow/dags'
+      - './airflow.cfg:/opt/airflow/airflow.cfg'
+    command: scheduler
+    depends_on:
+      - airflow-webserver
+
+  airflow-worker:
+    container_name: airflow-worker
+    image: apache/airflow:latest
+    restart: always
+    networks:
+      - airflow
+      - airflow-db-network
+    volumes:
+      - 'airflow_data:/opt/airflow'
+      - 'airflow_home:/home/airflow'
+      - './dags:/opt/airflow/dags'
+      - './airflow.cfg:/opt/airflow/airflow.cfg'
+    command: worker
+    depends_on:
+      - airflow-scheduler
+
+  airflow-flower:
+    container_name: airflow-flower
+    image: apache/airflow:latest
+    restart: always
+    networks:
+      - airflow
+      - airflow-db-network
+    volumes:
+      - 'airflow_data:/opt/airflow'
+      - 'airflow_home:/home/airflow'
+      - './dags:/opt/airflow/dags'
+      - './airflow.cfg:/opt/airflow/airflow.cfg'
+    command: flower
+    ports:
+      - '5555:5555'
+    depends_on:
+      - airflow-webserver
+      - airflow-worker
+      - airflow-scheduler
+
+volumes:
+  airflow_data:
+    driver: local
+  airflow_home:
+    driver: local
+
+networks:
+  airflow:
+    driver: bridge
+  airflow-db-network:
+    driver: bridge

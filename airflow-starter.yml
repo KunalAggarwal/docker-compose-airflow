@@ -1,0 +1,20 @@
+version: '3.1'
+
+services:
+  airflow-start:
+    container_name: airflow-init
+    image: apache/airflow:latest
+    networks:
+      - airflow-db-network
+    volumes:
+      - 'airflow_data:/opt/airflow'
+      - './airflow.cfg:/opt/airflow/airflow.cfg'
+    command: initdb
+
+volumes:
+  airflow_data:
+    driver: local
+
+networks:
+  airflow-db-network:
+    driver: bridge
